@@ -57,7 +57,7 @@ namespace rcon
                         requestId = -1;
                     }
 
-                    byte[] packet = PacketBuilder.CreatePacket(requestId, type, response_payload);
+                    byte[] packet = PacketBuilder.CreatePacket(requestId, PacketType.LoginResponse, response_payload);
 
                     socket.Send(packet);
                     break;
