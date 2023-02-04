@@ -5,6 +5,7 @@
         Error = -1,
         MultiPacket = 0,
         Command = 2,
+        LoginResponse = 2,
         Login = 3,
     }
 }
