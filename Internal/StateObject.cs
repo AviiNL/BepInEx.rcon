@@ -11,6 +11,6 @@ namespace rcon.Internal
         internal byte[] buffer = new byte[BufferSize];
 
         // Client socket.
-        internal Socket workSocket = null;
+        internal Socket? WorkSocket = null;
     }
 }
