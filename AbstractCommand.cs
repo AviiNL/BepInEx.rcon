@@ -4,7 +4,7 @@ namespace rcon
 {
     public abstract class AbstractCommand : ICommand
     {
-        protected BaseUnityPlugin Plugin { get; private set; }
+        protected BaseUnityPlugin? Plugin { get; private set; }
 
         void ICommand.setOwner(BaseUnityPlugin owner)
         {
