@@ -91,13 +91,11 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
         
         // start listening for the next client
-        _listener?.BeginAccept(AcceptCallback, _listener);
+        _listener.BeginAccept(AcceptCallback, _listener);
     }
 
     private void ReadCallback(IAsyncResult ar)
     {
-        var content = string.Empty;
-
         // Retrieve the state object and the handler socket  
         // from the asynchronous state object.  
         var state = (StateObject)ar.AsyncState;
