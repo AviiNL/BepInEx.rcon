@@ -56,9 +56,8 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         }
     }
 
-    internal void Update()
+    internal void Cleanup()
     {
-
         // copy the original list to an array to prevent errors when removing from the original list.
         foreach (var state in _clients.ToArray()) 
             if (!IsConnected(state.WorkSocket))
@@ -67,11 +66,8 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
                 state.WorkSocket?.Close();
                 _clients.Remove(state);
             }
-        
-        // memory leak when called inside the Update loop, instead call it after AcceptCallback
-        //_listener?.BeginAccept(AcceptCallback, _listener);
     }
-
+    
     internal void AcceptCallback(IAsyncResult ar)
     {
         // Signal the main thread to continue.  
