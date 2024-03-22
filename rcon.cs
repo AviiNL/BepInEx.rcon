@@ -17,7 +17,7 @@ public class rcon : BaseUnityPlugin
     public event UnknownCommand? OnUnknownCommand;
 
     public delegate string ParamsAction(params string[] args);
-    private AsynchronousSocketListener? _socketListener;
+    private readonly AsynchronousSocketListener _socketListener;
 
     private readonly ConfigEntry<bool> _enabled;
     private readonly ConfigEntry<int> _port;
@@ -33,6 +33,7 @@ public class rcon : BaseUnityPlugin
         _enabled = Config.Bind("rcon", "enabled", false, "Enable RCON Communication");
         _port = Config.Bind("rcon", "port", 2458, "Port to use for RCON Communication");
         _password = Config.Bind("rcon", "password", "ChangeMe", "Password to use for RCON Communication");
+        _socketListener = new AsynchronousSocketListener(IPAddress.Any, _port.Value);
     }
 
     private void Awake()
@@ -43,7 +44,6 @@ public class rcon : BaseUnityPlugin
     private void OnEnable()
     {
         if (!_enabled.Value) return;
-        _socketListener = new AsynchronousSocketListener(IPAddress.Any, _port.Value);
         _socketListener.OnMessage += SocketListener_OnMessage;
         _socketListener.StartListening();
         
@@ -52,7 +52,7 @@ public class rcon : BaseUnityPlugin
 
     private void Cleanup()
     {
-        _socketListener?.Cleanup();
+        _socketListener.Cleanup();
     }
     
     private void SocketListener_OnMessage(Socket socket, int requestId, PacketType type, string payload)
