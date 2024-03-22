@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace rcon;
 
-[BepInPlugin("nl.avii.plugins.rcon", "rcon", "1.0.2")]
+[BepInPlugin("nl.avii.plugins.rcon", "rcon", "1.0.3")]
 public class rcon : BaseUnityPlugin
 {
     public delegate string UnknownCommand(string command, string[] args);
@@ -35,6 +35,11 @@ public class rcon : BaseUnityPlugin
         _password = Config.Bind("rcon", "password", "ChangeMe", "Password to use for RCON Communication");
     }
 
+    private void Awake()
+    {
+        InvokeRepeating(nameof(Cleanup), 1f, 1f);
+    }
+
     private void OnEnable()
     {
         if (!_enabled.Value) return;
@@ -45,6 +50,11 @@ public class rcon : BaseUnityPlugin
         Logger.LogInfo("RCON Listening on port: " + _port.Value);
     }
 
+    private void Cleanup()
+    {
+        _socketListener?.Cleanup();
+    }
+    
     private void SocketListener_OnMessage(Socket socket, int requestId, PacketType type, string payload)
     {
         switch (type)
@@ -106,15 +116,7 @@ public class rcon : BaseUnityPlugin
                 break;
         }
     }
-
-    private void Update()
-    {
-        if (!_enabled.Value) return;
-        if (_socketListener == null) return;
-
-        _socketListener.Update();
-    }
-
+    
     private void OnDisable()
     {
         if (!_enabled.Value) return;
