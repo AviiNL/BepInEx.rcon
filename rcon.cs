@@ -34,6 +34,7 @@ public class rcon : BaseUnityPlugin
         _port = Config.Bind("rcon", "port", 2458, "Port to use for RCON Communication");
         _password = Config.Bind("rcon", "password", "ChangeMe", "Password to use for RCON Communication");
         _socketListener = new AsynchronousSocketListener(IPAddress.Any, _port.Value);
+        _socketListener.OnMessage += SocketListener_OnMessage;
     }
 
     private void Awake()
@@ -44,9 +45,7 @@ public class rcon : BaseUnityPlugin
     private void OnEnable()
     {
         if (!_enabled.Value) return;
-        _socketListener.OnMessage += SocketListener_OnMessage;
         _socketListener.StartListening();
-        
         Logger.LogInfo("RCON Listening on port: " + _port.Value);
     }
 
@@ -120,7 +119,7 @@ public class rcon : BaseUnityPlugin
     private void OnDisable()
     {
         if (!_enabled.Value) return;
-        _socketListener?.Close();
+        _socketListener.Close();
     }
 
     public void RegisterCommand<T>(BaseUnityPlugin owner, string command) where T : AbstractCommand, new()
