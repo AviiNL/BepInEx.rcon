@@ -18,7 +18,7 @@ public class rcon : BaseUnityPlugin
 
     public delegate string ParamsAction(params string[] args);
     private readonly AsynchronousSocketListener _socketListener;
-
+    
     private readonly ConfigEntry<bool> _enabled;
     private readonly ConfigEntry<int> _port;
     private readonly ConfigEntry<string> _password;

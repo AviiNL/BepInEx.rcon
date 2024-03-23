@@ -36,15 +36,17 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         }
     }
     
-    private bool IsConnected(Socket? c)
+    private bool IsConnected(Socket? socket)
     {
+        //return socket?.Connected ?? false;
+        
         try
         {
-            if (c is { Connected: true })
+            if (socket is { Connected: true })
             {
-                if (c.Poll(0, SelectMode.SelectRead))
+                if (socket.Poll(0, SelectMode.SelectRead))
                 {
-                    return c.Receive(new byte[1], SocketFlags.Peek) != 0;
+                    return socket.Receive(new byte[1], SocketFlags.Peek) != 0;
                 }
                 return true;
             }
@@ -84,7 +86,7 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         };
         _clients.Add(state);
         Debug.Log("Rcon client connected");
-        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
+        handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
         
         // start listening for the next client
         _listener.BeginAccept(AcceptCallback, _listener);
@@ -102,21 +104,21 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
 
         // Read data from the client socket.
         int bytesRead = handler.EndReceive(ar);
-        int length = BitConverter.ToInt32(state.buffer, 0);
-        int requestId = BitConverter.ToInt32(state.buffer, sizeof(int));
-        int type = BitConverter.ToInt32(state.buffer, sizeof(int) * 2);
+        int length = BitConverter.ToInt32(state.Buffer, 0);
+        int requestId = BitConverter.ToInt32(state.Buffer, sizeof(int));
+        int type = BitConverter.ToInt32(state.Buffer, sizeof(int) * 2);
         length -= sizeof(int) * 3 - 2;
         byte[] payload = new byte[length];
         for (var i = 0; i < length; i++)
         {
-            payload[i] = state.buffer[(sizeof(int) * 3) + i];
+            payload[i] = state.Buffer[(sizeof(int) * 3) + i];
         }
 
         OnMessage?.Invoke(handler, requestId, (PacketType)type, Encoding.ASCII.GetString(payload));
 
         // read another packet probably?
-        state.buffer = new byte[StateObject.BufferSize]; // clear the buffer
-        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
+        Array.Clear(state.Buffer, 0, state.Buffer.Length); // clear the buffer
+        handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
     }
 
     private void Send(Socket handler, string data)

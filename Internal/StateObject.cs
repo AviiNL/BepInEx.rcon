@@ -1,16 +1,15 @@
 ﻿using System.Net.Sockets;
 
-namespace rcon.Internal
+namespace rcon.Internal;
+
+internal class StateObject
 {
-    internal class StateObject
-    {
-        // Size of receive buffer.  
-        internal const int BufferSize = 4096;
+    // Size of receive buffer.  
+    internal const int BufferSize = 4096;
 
-        // Receive buffer.  
-        internal byte[] buffer = new byte[BufferSize];
+    // Receive buffer.  
+    internal readonly byte[] Buffer = new byte[BufferSize];
 
-        // Client socket.
-        internal Socket? WorkSocket = null;
-    }
+    // Client socket.
+    internal Socket? WorkSocket = null;
 }
