@@ -1,4 +1,4 @@
-﻿# RCON
+# RCON
 
 This is an RCON library for BepInEx compatible games that do not ship with a native RCON  implementation, like Valheim.
 
