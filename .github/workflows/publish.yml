@@ -18,7 +18,7 @@ jobs:
           token: ${{ secrets.THUNDERSTORE_TOKEN }}
           name: rcon # the name of the package
           version: ${{ github.ref_name }} # Use the tag as the package version
-          community: Valheim
+          community: valheim
           repo: valheim.thunderstore.io
           categories: | # <-- notice this pipe character
             libraries
