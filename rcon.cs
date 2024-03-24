@@ -10,15 +10,19 @@ using System.Text.RegularExpressions;
 
 namespace rcon;
 
-[BepInPlugin("nl.avii.plugins.rcon", "rcon", "1.0.3")]
+[BepInPlugin(PluginGuid, PluginName, PluginVersion)]
 public class rcon : BaseUnityPlugin
 {
+    public const string PluginGuid = "nl.avii.plugins.rcon";
+    public const string PluginName = "rcon";
+    public const string PluginVersion = "1.0.4";
+        
     public delegate string UnknownCommand(string command, string[] args);
     public event UnknownCommand? OnUnknownCommand;
 
     public delegate string ParamsAction(params string[] args);
     private readonly AsynchronousSocketListener _socketListener;
-
+    
     private readonly ConfigEntry<bool> _enabled;
     private readonly ConfigEntry<int> _port;
     private readonly ConfigEntry<string> _password;
