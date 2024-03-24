@@ -1,0 +1,26 @@
+name: Publish Mod
+
+# Run when a new release is... released
+on: 
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Use checkout to publish the files in your repo
+      - uses: actions/checkout@v3
+      - uses: GreenTF/upload-thunderstore-package@v4.2
+        with:
+          namespace: AviiNL # the thunderstore 'team' to publish under
+          description: Add RCON communication protocol to BepInEx compatible games 
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}
+          name: rcon # the name of the package
+          version: ${{ github.ref_name }} # Use the tag as the package version
+          community: Valheim
+          repo: valheim.thunderstore.io
+          categories: | # <-- notice this pipe character
+            libraries
+            server-side
+            utility
