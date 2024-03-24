@@ -23,7 +23,6 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         try
         {
             var localEndPoint = new IPEndPoint(ipAddress, port);
-
             _listener.Bind(localEndPoint);
             _listener.Listen(100);
             
@@ -60,14 +59,17 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
 
     internal void Cleanup()
     {
-        // copy the original list to an array to prevent errors when removing from the original list.
-        foreach (var state in _clients.ToArray()) 
+        // loop the list in reverse so that removing memebers is safe.
+        for (var i = _clients.Count - 1; i >= 0; i--)
+        {
+            var state = _clients[i];
             if (!IsConnected(state.WorkSocket))
             {
                 Debug.Log("Rcon client disconnected");
                 state.WorkSocket?.Close();
                 _clients.Remove(state);
             }
+        }
     }
     
     internal void AcceptCallback(IAsyncResult ar)
@@ -76,17 +78,17 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         //allDone.Set();
 
         // Get the socket that handles the client request.  
-        var listener = (Socket)ar.AsyncState;
-        var handler = listener.EndAccept(ar);
+        //var socket = (Socket)ar.AsyncState;
+        var socket = _listener.EndAccept(ar);
 
         // Create the state object.  
         var state = new StateObject
         {
-            WorkSocket = handler
+            WorkSocket = socket
         };
         _clients.Add(state);
         Debug.Log("Rcon client connected");
-        handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
+        socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
         
         // start listening for the next client
         _listener.BeginAccept(AcceptCallback, _listener);
@@ -97,28 +99,31 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         // Retrieve the state object and the handler socket  
         // from the asynchronous state object.  
         var state = (StateObject)ar.AsyncState;
-        var handler = state.WorkSocket;
+        var socket = state.WorkSocket;
 
-        if (handler == null)
+        if (socket == null)
             return;
 
+        int bytesRead = socket.EndReceive(ar);
+        if (bytesRead == 0)
+            return;
+        
         // Read data from the client socket.
-        int bytesRead = handler.EndReceive(ar);
-        int length = BitConverter.ToInt32(state.Buffer, 0);
-        int requestId = BitConverter.ToInt32(state.Buffer, sizeof(int));
+        int length = BitConverter.ToInt32(state.Buffer, sizeof(int) * 0);
+        int requestId = BitConverter.ToInt32(state.Buffer, sizeof(int) * 1);
         int type = BitConverter.ToInt32(state.Buffer, sizeof(int) * 2);
         length -= sizeof(int) * 3 - 2;
         byte[] payload = new byte[length];
         for (var i = 0; i < length; i++)
         {
-            payload[i] = state.Buffer[(sizeof(int) * 3) + i];
+            payload[i] = state.Buffer[sizeof(int) * 3 + i];
         }
 
-        OnMessage?.Invoke(handler, requestId, (PacketType)type, Encoding.ASCII.GetString(payload));
+        OnMessage?.Invoke(socket, requestId, (PacketType)type, Encoding.ASCII.GetString(payload));
 
         // read another packet probably?
         Array.Clear(state.Buffer, 0, state.Buffer.Length); // clear the buffer
-        handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
+        socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
     }
 
     private void Send(Socket handler, string data)
@@ -135,14 +140,14 @@ internal class AsynchronousSocketListener(IPAddress ipAddress, int port)
         try
         {
             // Retrieve the socket from the state object.  
-            Socket handler = (Socket)ar.AsyncState;
+            var socket = (Socket)ar.AsyncState;
 
             // Complete sending the data to the remote device.  
-            int bytesSent = handler.EndSend(ar);
+            int bytesSent = socket.EndSend(ar);
             Debug.Log($"Sent {bytesSent} bytes to client.");
 
-            handler.Shutdown(SocketShutdown.Both);
-            handler.Close();
+            socket.Shutdown(SocketShutdown.Both);
+            socket.Close();
 
         }
         catch (Exception e)
